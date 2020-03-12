@@ -9,29 +9,50 @@ open Xamarin.Forms
 
 module App =
     type Model =
-      { SettingsModel : Settings.Model
+      { SomeFlag : bool
+        SettingsModel : Settings.Model
         AddResultModel : AddResult.Model
         AboutModel : About.Model }
 
     type Msg =
         | AddResultMsg of AddResult.Msg
         | SettingsMsg of Settings.Msg
+        | SomeOtherMsg
 
-    let initModel =
-        { AboutModel = About.initModel
+    type CmdMsg =
+        | AddResultCmdMsg of AddResult.CmdMsg
+        | TestCmdMsg
+
+    // TODO: Remove and redo the settings
+    let timerCmd () =
+        async { do! Async.Sleep 200
+                return SomeOtherMsg }
+        |> Cmd.ofAsyncMsg
+
+    let mapCommands cmdMsg =
+        match cmdMsg with
+        | AddResultCmdMsg something -> AddResult.mapCommands something
+        | TestCmdMsg -> timerCmd()
+
+    let initModel () =
+        { SomeFlag = false
+          AboutModel = About.initModel
           AddResultModel = AddResult.initModel
           SettingsModel = Settings.initModel }
 
-    let init () = initModel, Cmd.none
+    let init () = initModel (), []
 
     let update msg model =
         match msg with
+        | SomeOtherMsg ->
+            { model with SomeFlag = not model.SomeFlag }, [TestCmdMsg]
         | AddResultMsg addResultMsg ->
-            let addResultModel, addResultMsg = AddResult.update model.AddResultModel addResultMsg
-            { model with AddResultModel = addResultModel }, Cmd.map AddResultMsg addResultMsg
-        | SettingsMsg settingsMsg ->
-            let settingsModel, settingsCmd = Settings.update model.SettingsModel settingsMsg
-            { model with SettingsModel = settingsModel }, Cmd.map SettingsMsg settingsCmd
+            let addResultModel, addResultCmdMsgs = AddResult.update model.AddResultModel addResultMsg
+            { model with AddResultModel = addResultModel }, addResultCmdMsgs |> List.map AddResultCmdMsg
+//        | SettingsMsg settingsMsg ->
+//            let settingsModel, settingsCmd = Settings.update model.SettingsModel settingsMsg
+////            let ourCmd: Cmd<Msg> = Cmd.map SettingsMsg settingsCmd
+//            { model with SettingsModel = settingsModel }, [settingsCmd]
 
     let navigationPrimaryColor = Color.FromHex("#2196F3")
 
@@ -56,14 +77,14 @@ module App =
                                 content = AddResult.view model.AddResultModel (Msg.AddResultMsg >> dispatch)
                             )
                         ])
-                    View.Tab(
-                        title = "Settings",
-                        icon = Image.Path "tab_settings.png",
-                        items = [
-                            View.ShellContent(
-                                content = Settings.view model.SettingsModel (Msg.SettingsMsg >> dispatch)
-                            )
-                        ])
+//                    View.Tab(
+//                        title = "Settings",
+//                        icon = Image.Path "tab_settings.png",
+//                        items = [
+//                            View.ShellContent(
+//                                content = Settings.view model.SettingsModel (Msg.SettingsMsg >> dispatch)
+//                            )
+//                        ])
                     View.Tab(
                         title = "About",
                         icon = Image.Path "tab_about.png",
@@ -76,7 +97,7 @@ module App =
             ])
 
     // Note, this declaration is needed if you enable LiveUpdate
-    let program = Program.mkProgram init update view
+    let program = Program.mkProgramWithCmdMsg init update view mapCommands
 
 type App () as app =
     inherit Application ()
