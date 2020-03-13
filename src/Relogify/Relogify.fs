@@ -5,6 +5,7 @@ open System.Diagnostics
 open Fabulous
 open Fabulous.XamarinForms
 open Fabulous.XamarinForms.LiveUpdate
+open Routes
 open Xamarin.Forms
 
 module App =
@@ -17,15 +18,32 @@ module App =
     type Msg =
         | AddResultMsg of AddResult.Msg
         | SettingsMsg of Settings.Msg
+        | ShowTimer
 
     type CmdMsg =
         | AddResultCmdMsg of AddResult.CmdMsg
         | SettingsCmdMsg of Settings.CmdMsg
+        | ShowTimerCmdMsg
+
+    let shellRef = ViewRef<Shell>()
+
+    let navigateToPage (pageName: string) =
+        match shellRef.TryValue with
+        | None -> ()
+        | Some shell ->
+            let route = ShellNavigationState.op_Implicit pageName
+
+            async {
+                do! shell.GoToAsync route |> Async.AwaitTask
+            } |> Async.StartImmediate
+
+        Cmd.none
 
     let mapCommands cmdMsg =
         match cmdMsg with
         | AddResultCmdMsg x -> AddResult.mapCommands x |> Cmd.map AddResultMsg
         | SettingsCmdMsg x -> Settings.mapCommands x |> Cmd.map SettingsMsg
+        | ShowTimerCmdMsg -> navigateToPage "Timer"
 
     let initModel () =
         { SomeFlag = false
@@ -33,7 +51,9 @@ module App =
           AddResultModel = AddResult.initModel
           SettingsModel = Settings.initModel }
 
-    let init () = initModel (), []
+    let init () =
+        Routing.RegisterRoute("Timer", typeof<AboutRoutingPage>)
+        initModel (), []
 
     let update msg model =
         match msg with
@@ -43,11 +63,13 @@ module App =
         | SettingsMsg settingsMsg ->
             let settingsModel, settingsCmdMsgs = Settings.update model.SettingsModel settingsMsg
             { model with SettingsModel = settingsModel }, settingsCmdMsgs |> List.map SettingsCmdMsg
+        | ShowTimer -> model, [ShowTimerCmdMsg]
 
     let navigationPrimaryColor = Color.FromHex("#2196F3")
 
     let view (model: Model) dispatch =
         View.Shell(
+            ref=shellRef,
             shellBackgroundColor = navigationPrimaryColor,
             shellForegroundColor = Color.White,
             shellTitleColor = Color.White,
@@ -64,7 +86,15 @@ module App =
                         icon = Image.Path "tab_feed.png",
                         items = [
                             View.ShellContent(
-                                content = AddResult.view model.AddResultModel (Msg.AddResultMsg >> dispatch)
+                                content =
+                                    (AddResult.view model.AddResultModel (Msg.AddResultMsg >> dispatch))
+                                        .ToolbarItems(
+                                            [
+                                                View.ToolbarItem(
+                                                    text = "Timer",
+                                                    command = (fun () -> dispatch ShowTimer)
+                                                )
+                                            ])
                             )
                         ])
                     View.Tab(

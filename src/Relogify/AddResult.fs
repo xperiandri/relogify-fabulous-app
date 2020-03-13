@@ -90,4 +90,4 @@ let view model dispatch =
                 )
             ]
         )
-    ).ToolbarItems([View.ToolbarItem(text = "Timer", command = (fun () -> ()))])
+    )
