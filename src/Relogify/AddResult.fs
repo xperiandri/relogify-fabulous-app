@@ -25,11 +25,10 @@ type Msg =
     | SetOpponentPoints of int
     | ToggleExtraTime
 
-type CmdMsg =
-    | Noop
+type CmdMsg = Noop
 
-let mapCommands cmdMsg =
-    match cmdMsg with
+let mapCommands: CmdMsg -> Cmd<Msg> =
+    function
     | Noop -> Cmd.none
 
 let update model msg: Model * CmdMsg list =

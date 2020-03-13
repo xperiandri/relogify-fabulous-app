@@ -17,22 +17,15 @@ module App =
     type Msg =
         | AddResultMsg of AddResult.Msg
         | SettingsMsg of Settings.Msg
-        | SomeOtherMsg
 
     type CmdMsg =
         | AddResultCmdMsg of AddResult.CmdMsg
-        | TestCmdMsg
-
-    // TODO: Remove and redo the settings
-    let timerCmd () =
-        async { do! Async.Sleep 200
-                return SomeOtherMsg }
-        |> Cmd.ofAsyncMsg
+        | SettingsCmdMsg of Settings.CmdMsg
 
     let mapCommands cmdMsg =
         match cmdMsg with
-        | AddResultCmdMsg something -> AddResult.mapCommands something
-        | TestCmdMsg -> timerCmd()
+        | AddResultCmdMsg x -> AddResult.mapCommands x |> Cmd.map AddResultMsg
+        | SettingsCmdMsg x -> Settings.mapCommands x |> Cmd.map SettingsMsg
 
     let initModel () =
         { SomeFlag = false
@@ -44,15 +37,12 @@ module App =
 
     let update msg model =
         match msg with
-        | SomeOtherMsg ->
-            { model with SomeFlag = not model.SomeFlag }, [TestCmdMsg]
         | AddResultMsg addResultMsg ->
             let addResultModel, addResultCmdMsgs = AddResult.update model.AddResultModel addResultMsg
             { model with AddResultModel = addResultModel }, addResultCmdMsgs |> List.map AddResultCmdMsg
-//        | SettingsMsg settingsMsg ->
-//            let settingsModel, settingsCmd = Settings.update model.SettingsModel settingsMsg
-////            let ourCmd: Cmd<Msg> = Cmd.map SettingsMsg settingsCmd
-//            { model with SettingsModel = settingsModel }, [settingsCmd]
+        | SettingsMsg settingsMsg ->
+            let settingsModel, settingsCmdMsgs = Settings.update model.SettingsModel settingsMsg
+            { model with SettingsModel = settingsModel }, settingsCmdMsgs |> List.map SettingsCmdMsg
 
     let navigationPrimaryColor = Color.FromHex("#2196F3")
 
@@ -77,14 +67,14 @@ module App =
                                 content = AddResult.view model.AddResultModel (Msg.AddResultMsg >> dispatch)
                             )
                         ])
-//                    View.Tab(
-//                        title = "Settings",
-//                        icon = Image.Path "tab_settings.png",
-//                        items = [
-//                            View.ShellContent(
-//                                content = Settings.view model.SettingsModel (Msg.SettingsMsg >> dispatch)
-//                            )
-//                        ])
+                    View.Tab(
+                        title = "Settings",
+                        icon = Image.Path "tab_settings.png",
+                        items = [
+                            View.ShellContent(
+                                content = Settings.view model.SettingsModel (Msg.SettingsMsg >> dispatch)
+                            )
+                        ])
                     View.Tab(
                         title = "About",
                         icon = Image.Path "tab_about.png",
