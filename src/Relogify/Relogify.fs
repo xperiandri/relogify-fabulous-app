@@ -52,7 +52,7 @@ module App =
           SettingsModel = Settings.initModel }
 
     let init () =
-        Routing.RegisterRoute("Timer", typeof<AboutRoutingPage>)
+        Routing.RegisterRoute("Timer", typeof<TimerRoutingPage>)
         initModel (), []
 
     let update msg model =

@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <Compile Include="About.fs" />
+    <Compile Include="Timer.fs" />
     <Compile Include="Settings.fs" />
     <Compile Include="AddResult.fs" />
     <Compile Include="Routes.fs" />

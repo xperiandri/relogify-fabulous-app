@@ -26,8 +26,8 @@ type RoutingPage(view: unit -> ViewElement) =
         | Some prevViewElement ->
             viewElement.UpdateIncremental(prevViewElement, this.Content)
 
-type AboutRoutingPage() =
-    inherit RoutingPage(fun () -> About.view About.initModel)
+type TimerRoutingPage() =
+    inherit RoutingPage(Timer.init >> Timer.view)
 
 //type DogRoutingPage() =
 //    inherit RoutingPage(Dogs.data, (DogDetails.init >> DogDetails.view))
