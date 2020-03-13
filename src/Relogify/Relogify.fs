@@ -31,9 +31,13 @@ module App =
         match shellRef.TryValue with
         | None -> ()
         | Some shell ->
-            let route = ShellNavigationState.op_Implicit pageName
+            let route = ShellNavigationState.op_Implicit (sprintf "%s?name=whatever" pageName)
 
             async {
+//                let a = Timer.view (Timer.init())
+//                let b = a.Create() :?> Page
+//                do! shell.Navigation.PushModalAsync(b) |> Async.AwaitTask
+//
                 do! shell.GoToAsync route |> Async.AwaitTask
             } |> Async.StartImmediate
 
@@ -43,7 +47,7 @@ module App =
         match cmdMsg with
         | AddResultCmdMsg x -> AddResult.mapCommands x |> Cmd.map AddResultMsg
         | SettingsCmdMsg x -> Settings.mapCommands x |> Cmd.map SettingsMsg
-        | ShowTimerCmdMsg -> navigateToPage "Timer"
+        | ShowTimerCmdMsg -> navigateToPage "TestRoute"
 
     let initModel () =
         { SomeFlag = false
@@ -52,7 +56,7 @@ module App =
           SettingsModel = Settings.initModel }
 
     let init () =
-        Routing.RegisterRoute("Timer", typeof<TimerRoutingPage>)
+        Routing.RegisterRoute("TestRoute", typeof<TestRoutingPage>)
         initModel (), []
 
     let update msg model =
