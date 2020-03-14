@@ -32,7 +32,16 @@ module App =
         | None -> ()
         | Some shell ->
             let route = ShellNavigationState.op_Implicit (sprintf "%s?name=whatever" pageName)
+            async {
+                do! shell.GoToAsync route |> Async.AwaitTask
+            } |> Async.StartImmediate
 
+        Cmd.none
+
+    let showTimer () =
+        match shellRef.TryValue with
+        | None -> ()
+        | Some shell ->
             async {
                 let popModalFunc = fun () -> shell.Navigation.PopModalAsync() |> ignore
 
@@ -41,7 +50,6 @@ module App =
                 let timerPage = timerView.Create() :?> Page
                 do! shell.Navigation.PushModalAsync(timerPage) |> Async.AwaitTask
 
-//                do! shell.GoToAsync route |> Async.AwaitTask
             } |> Async.StartImmediate
 
         Cmd.none
@@ -50,7 +58,7 @@ module App =
         match cmdMsg with
         | AddResultCmdMsg x -> AddResult.mapCommands x |> Cmd.map AddResultMsg
         | SettingsCmdMsg x -> Settings.mapCommands x |> Cmd.map SettingsMsg
-        | ShowTimerCmdMsg -> navigateToPage "TestRoute"
+        | ShowTimerCmdMsg -> showTimer ()
 
     let initModel () =
         { SomeFlag = false
