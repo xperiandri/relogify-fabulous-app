@@ -34,11 +34,14 @@ module App =
             let route = ShellNavigationState.op_Implicit (sprintf "%s?name=whatever" pageName)
 
             async {
-//                let a = Timer.view (Timer.init())
-//                let b = a.Create() :?> Page
-//                do! shell.Navigation.PushModalAsync(b) |> Async.AwaitTask
-//
-                do! shell.GoToAsync route |> Async.AwaitTask
+                let popModalFunc = fun () -> shell.Navigation.PopModalAsync() |> ignore
+
+                let timerModel = Timer.init popModalFunc
+                let timerView = Timer.view timerModel
+                let timerPage = timerView.Create() :?> Page
+                do! shell.Navigation.PushModalAsync(timerPage) |> Async.AwaitTask
+
+//                do! shell.GoToAsync route |> Async.AwaitTask
             } |> Async.StartImmediate
 
         Cmd.none
